@@ -1,0 +1,1009 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>nsga2</title><meta name="generator" content="MATLAB 8.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-07-30"><meta name="DC.source" content="nsga2.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><pre class="codeinput"><span class="comment">% -------------------------- NSGA-II ------------------------------------</span>
+<span class="comment">%</span>
+<span class="comment">%                           Nondominated Sorting Genetic Algorithm (NSGA-II)</span>
+<span class="comment">%                           with Real-Parameter and Discrete-Parameter Handling</span>
+<span class="comment">%</span>
+<span class="comment">%                           Date: 12 Nov 2012</span>
+<span class="comment">%                           Author: Cem Celal Tutum, Ph.D.</span>
+<span class="comment">%                           Modified by Ling Zhu on 12 May 2016</span>
+<span class="comment">%                           Under supervision of Prof. Kalyanmoy Deb</span>
+<span class="comment">%</span>
+<span class="comment">%                           Computational Optimization and</span>
+<span class="comment">%                           Innovation Laboratory (COIN)</span>
+<span class="comment">%                           Michigan State University</span>
+<span class="comment">%                           Email: kdeb@egr.msu.edu</span>
+<span class="comment">%                           Web: www.coin-laboratory.com</span>
+<span class="comment">% -----------------------------------------------------------------------</span>
+
+clear <span class="string">all</span>; close <span class="string">all</span>; clc; format <span class="string">long</span> <span class="string">g</span>;
+seed = floor(sum(100*clock)); <span class="comment">% Varying seed</span>
+rng(seed, <span class="string">'twister'</span>);
+
+<span class="comment">% set the problem size from bottom, no other change is required</span>
+problem = 7;
+
+<span class="comment">% problem = 0 --&gt; User defined</span>
+<span class="comment">% problem = 1 --&gt; sch1</span>
+<span class="comment">% problem = 2 --&gt; sch2</span>
+<span class="comment">% problem = 3 --&gt; fon</span>
+<span class="comment">% problem = 4 --&gt; kur</span>
+<span class="comment">% problem = 5 --&gt; pol</span>
+<span class="comment">% problem = 6 --&gt; vnt</span>
+<span class="comment">% problem = 7 --&gt; zdt1</span>
+<span class="comment">% problem = 8 --&gt; zdt2</span>
+<span class="comment">% problem = 9 --&gt; zdt3</span>
+<span class="comment">% problem = 10 --&gt; zdt4</span>
+<span class="comment">% problem = 11 --&gt; zdt5</span>
+<span class="comment">% problem = 12 --&gt; zdt6</span>
+<span class="comment">% problem = 13 --&gt; bnh</span>
+<span class="comment">% problem = 14 --&gt; osy</span>
+<span class="comment">% problem = 15 --&gt; srn</span>
+<span class="comment">% problem = 16 --&gt; tnk</span>
+<span class="comment">% problem = 17 --&gt; ctp1</span>
+<span class="comment">% problem = 18 --&gt; ctp2</span>
+<span class="comment">% problem = 19 --&gt; ctp3</span>
+<span class="comment">% problem = 20 --&gt; ctp4</span>
+<span class="comment">% problem = 21 --&gt; ctp5</span>
+<span class="comment">% problem = 22 --&gt; ctp6</span>
+<span class="comment">% problem = 23 --&gt; ctp7</span>
+<span class="comment">% problem = 24 --&gt; ctp8</span>
+<span class="comment">% problem = 25 --&gt; CONSTR</span>
+<span class="comment">% problem = 26 --&gt; DTLZ2 (three-objective)</span>
+
+data = problem_inputs(problem);
+interactive_input = 0;
+post_level = 1; <span class="comment">% 1: Fast (last population); 2: Detailed (all_pop.out)</span>
+
+<span class="keyword">global</span> INF EPS E PI
+INF = 1.0e14;
+EPS = 1.0e-14;
+E = 2.71828182845905;
+PI = 3.14159265358979;
+
+fpt1 = fopen(<span class="string">'initial_pop.out'</span>,<span class="string">'w'</span>);
+fpt2 = fopen(<span class="string">'final_pop.out'</span>,<span class="string">'w'</span>);
+fpt3 = fopen(<span class="string">'best_pop.out'</span>,<span class="string">'w'</span>); <span class="comment">% 'a' da kullanilabilir</span>
+fpt4 = fopen(<span class="string">'all_pop.out'</span>,<span class="string">'w'</span>);
+fpt5 = fopen(<span class="string">'params_pop.out'</span>,<span class="string">'w'</span>);
+
+fprintf(fpt1, <span class="string">'# This file contains the data of initial population\n'</span>);
+fprintf(fpt2, <span class="string">'# This file contains the data of final population\n'</span>);
+fprintf(fpt3, <span class="string">'# This file contains the data of final feasible population (if found)\n'</span>);
+fprintf(fpt4, <span class="string">'# This file contains the data of all generations\n'</span>);
+fprintf(fpt5, <span class="string">'# This file contains information about inputs as read by the program\n'</span>);
+
+disp(<span class="string">' Enter the problem relevant and algorithm relevant paramaters ...'</span>);
+
+<span class="keyword">if</span> interactive_input == 0
+    popsize = data.popsize;
+    disp([<span class="string">' Enter the population size (a multiple of 4) : '</span> num2str(popsize)])
+<span class="keyword">else</span>
+    popsize = input(<span class="string">' Enter the population size (a multiple of 4) : '</span>);
+<span class="keyword">end</span>
+<span class="keyword">if</span> (popsize &lt; 4) || (mod(popsize, 4) ~= 0)
+    disp([<span class="string">' The population size read is : '</span>, num2str(popsize)]);
+    disp(<span class="string">' Wrong population size entered, hence exiting'</span>);
+    exit;
+<span class="keyword">end</span>
+
+<span class="keyword">if</span> interactive_input == 0
+    ngen = data.ngen;
+    disp([<span class="string">' Enter the number of generations : '</span> num2str(ngen)])
+<span class="keyword">else</span>
+    ngen = input(<span class="string">' Enter the number of generations : '</span>);
+<span class="keyword">end</span>
+<span class="keyword">if</span> (ngen &lt; 1)
+    disp([<span class="string">' The number of generations read is : '</span>, num2str(ngen)]);
+    disp(<span class="string">' Wrong number of generations entered, hence exiting'</span>);
+    exit;
+<span class="keyword">end</span>
+
+<span class="keyword">if</span> interactive_input == 0
+    nobj = data.nobj;
+    disp([<span class="string">' Enter the number of objectives : '</span> num2str(nobj)])
+<span class="keyword">else</span>
+    nobj = input(<span class="string">' Enter the number of objectives : '</span>);
+<span class="keyword">end</span>
+<span class="keyword">if</span> (nobj &lt; 1)
+    disp([<span class="string">' The number of objectives entered is : '</span>, num2str(nobj)]);
+    disp(<span class="string">' Wrong number of objectives entered, hence exiting'</span>);
+    exit;
+<span class="keyword">end</span>
+
+<span class="keyword">if</span> interactive_input == 0
+    ncon = data.ncon;
+    disp([<span class="string">' Enter the number of constraints : '</span> num2str(ncon)])
+<span class="keyword">else</span>
+    ncon = input(<span class="string">' Enter the number of constraints : '</span>);
+<span class="keyword">end</span>
+<span class="keyword">if</span> (ncon &lt; 0)
+    disp([<span class="string">' The number of constraints entered is : '</span>, num2str(ncon)]);
+    disp(<span class="string">' Wrong number of constraints entered, hence exiting'</span>);
+    exit;
+<span class="keyword">end</span>
+
+<span class="keyword">if</span> interactive_input == 0
+    nreal = data.nreal;
+    disp([<span class="string">' Enter the number of real variables : '</span> num2str(nreal)])
+<span class="keyword">else</span>
+    nreal = input(<span class="string">' Enter the number of real variables : '</span>);
+<span class="keyword">end</span>
+<span class="keyword">if</span> (nreal &lt; 0)
+    disp([<span class="string">' The number of real variables entered is : '</span>, num2str(nreal)]);
+    disp(<span class="string">' Wrong number of real variables entered, hence exiting'</span>);
+    exit;
+<span class="keyword">end</span>
+
+<span class="keyword">if</span> (nreal ~= 0)
+    min_realvar = zeros(1, nreal);
+    max_realvar = zeros(1, nreal);
+    <span class="keyword">for</span> i=1:nreal
+        <span class="keyword">if</span> interactive_input == 0
+            min_realvar(i) = data.min_realvar(i);
+            max_realvar(i) = data.max_realvar(i);
+            disp([<span class="string">' Enter the lower limit of real variable '</span>, num2str(i), <span class="string">' : '</span> num2str(min_realvar(i))])
+            disp([<span class="string">' Enter the upper limit of real variable '</span>, num2str(i), <span class="string">' : '</span> num2str(max_realvar(i))])
+        <span class="keyword">else</span>
+            min_realvar(i) = input([<span class="string">' Enter the lower limit of real variable '</span>, num2str(i), <span class="string">' : '</span>]);
+            max_realvar(i) = input([<span class="string">' Enter the upper limit of real variable '</span>, num2str(i), <span class="string">' : '</span> ]);
+        <span class="keyword">end</span>
+        <span class="keyword">if</span> (max_realvar(i) &lt;= min_realvar(i))
+            disp(<span class="string">' Wrong limits entered for the min and max bounds of real variable, hence exiting'</span>);
+            exit;
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+    <span class="keyword">if</span> interactive_input == 0
+        pcross_real = data.pcross_real;
+        disp([<span class="string">' Enter the probability of crossover of real variable (0.6-1.0) : '</span> num2str(pcross_real)])
+    <span class="keyword">else</span>
+        pcross_real = input(<span class="string">' Enter the probability of crossover of real variable (0.6-1.0) : '</span>);
+    <span class="keyword">end</span>
+    <span class="keyword">if</span> (pcross_real &lt; 0.0) || (pcross_real &gt; 1.0)
+        disp([<span class="string">' Probability of crossover entered is : '</span>, num2str(pcross_real)]);
+        disp(<span class="string">' Entered value of probability of crossover of real variables is out of bounds, hence exiting'</span>);
+        exit;
+    <span class="keyword">end</span>
+    <span class="keyword">if</span> interactive_input == 0
+        pmut_real = data.pmut_real;
+        disp([<span class="string">' Enter the probability of mutation of real variable (1/nreal) : '</span> num2str(pmut_real)])
+    <span class="keyword">else</span>
+        pmut_real = input(<span class="string">' Enter the probability of mutation of real variable (1/nreal) : '</span>);
+    <span class="keyword">end</span>
+    <span class="keyword">if</span> (pmut_real &lt; 0.0 || pmut_real &gt; 1.0)
+        disp([<span class="string">' Probability of mutation entered is : '</span>, num2str(pmut_real)]);
+        disp(<span class="string">' Entered value of probability of mutation of real variables is out of bounds, hence exiting'</span>);
+        exit;
+    <span class="keyword">end</span>
+    <span class="keyword">if</span> interactive_input == 0
+        eta_c = data.eta_c;
+        disp([<span class="string">' Enter the value of distribution index for crossover (5-20) : '</span> num2str(eta_c)])
+    <span class="keyword">else</span>
+        eta_c = input(<span class="string">' Enter the value of distribution index for crossover (5-20) : '</span>);
+    <span class="keyword">end</span>
+    <span class="keyword">if</span> (eta_c &lt; 0.0)
+        disp([<span class="string">' The value entered is : '</span>, num2str(eta_c)]);
+        disp(<span class="string">' Wrong value of distribution index for crossover entered, hence exiting'</span>);
+        exit;
+    <span class="keyword">end</span>
+    <span class="keyword">if</span> interactive_input == 0
+        eta_m = data.eta_m;
+        disp([<span class="string">' Enter the value of distribution index for mutation (5-50) : '</span> num2str(eta_m)])
+    <span class="keyword">else</span>
+        eta_m = input(<span class="string">' Enter the value of distribution index for mutation (5-50) : '</span>);
+    <span class="keyword">end</span>
+    <span class="keyword">if</span> (eta_m &lt; 0.0)
+        disp([<span class="string">' The value entered is : '</span>, num2str(eta_m)]);
+        disp(<span class="string">' Wrong value of distribution index for mutation entered, hence exiting'</span>);
+        exit;
+    <span class="keyword">end</span>
+<span class="keyword">elseif</span> nreal == 0
+    pcross_real = [];
+    pmut_real=[];
+    eta_c = [];
+    eta_m = [];
+    nrealcross = [];
+    nrealmut = [];
+    min_realvar = [];
+    max_realvar = [];
+<span class="keyword">end</span>
+
+<span class="keyword">if</span> interactive_input == 0
+    nbin = data.nbin;
+    disp([<span class="string">' Enter the number of binary variables : '</span> num2str(nbin)])
+<span class="keyword">else</span>
+    nbin = input(<span class="string">' Enter the number of binary variables : '</span>);
+<span class="keyword">end</span>
+<span class="keyword">if</span> (nbin &lt; 0)
+    disp([<span class="string">' The number of binary variables entered is : '</span>, num2str(nbin)]);
+    disp(<span class="string">' Wrong number of binary variables entered, hence exiting'</span>);
+    exit;
+<span class="keyword">end</span>
+
+<span class="keyword">if</span> (nbin ~= 0)
+    nbits = zeros(1, nbin);
+    min_binvar = zeros(1, nbin);
+    max_binvar = zeros(1, nbin);
+    <span class="keyword">for</span> i=1:nbin
+        <span class="keyword">if</span> interactive_input == 0
+            nbits(i) = data.nbits(i);
+            disp([<span class="string">' Enter the number of bits for binary variable '</span>, num2str(i), <span class="string">' : '</span> num2str(nbits(i))])
+        <span class="keyword">else</span>
+            nbits(i) = input([<span class="string">' Enter the number of bits for binary variable '</span>, num2str(i), <span class="string">' : '</span>]);
+        <span class="keyword">end</span>
+        <span class="keyword">if</span> (nbits(i) &lt; 1)
+            disp(<span class="string">' Wrong number of bits for binary variable entered, hence exiting'</span>);
+            exit;
+        <span class="keyword">end</span>
+        <span class="keyword">if</span> interactive_input == 0
+            min_binvar(i) = data.min_binvar(i);
+            max_binvar(i) = data.max_binvar(i);
+            disp([<span class="string">' Enter the lower limit of binary variable '</span>, num2str(i), <span class="string">' : '</span> num2str(min_binvar(i))])
+            disp([<span class="string">' Enter the upper limit of binary variable '</span>, num2str(i), <span class="string">' : '</span> num2str(max_binvar(i))])
+        <span class="keyword">else</span>
+            min_binvar(i) = input([<span class="string">' Enter the lower limit of binary variable '</span>, num2str(i), <span class="string">' : '</span>]);
+            max_binvar(i) = input([<span class="string">' Enter the upper limit of binary variable '</span>, num2str(i), <span class="string">' : '</span>]);
+        <span class="keyword">end</span>
+        <span class="keyword">if</span> (max_binvar(i) &lt;= min_binvar(i))
+            disp(<span class="string">' Wrong limits entered for the min and max bounds of binary variable, hence exiting'</span>)
+            exit;
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+    <span class="keyword">if</span> interactive_input == 0
+        pcross_bin = data.pcross_bin;
+        disp([<span class="string">' Enter the probability of crossover of binary variables (0.6-1.0) : '</span> num2str(pcross_bin)])
+    <span class="keyword">else</span>
+        pcross_bin = input(<span class="string">' Enter the probability of crossover of binary variables (0.6-1.0) : '</span>);
+    <span class="keyword">end</span>
+    <span class="keyword">if</span> (pcross_bin &lt; 0.0 || pcross_bin &gt; 1.0)
+        disp([<span class="string">' Probability of crossover entered is : '</span>, num2str(pcross_bin)]);
+        disp(<span class="string">' Entered value of probability of crossover of binary variables is out of bounds, hence exiting'</span>);
+        exit;
+    <span class="keyword">end</span>
+    <span class="keyword">if</span> interactive_input == 0
+        pmut_bin = data.pmut_bin;
+        disp([<span class="string">' Enter the probability of mutation of binary variables (1/nreal) : '</span> num2str(pmut_bin)])
+    <span class="keyword">else</span>
+        pmut_bin = input(<span class="string">' Enter the probability of mutation of binary variables (1/nreal) : '</span>);
+    <span class="keyword">end</span>
+    <span class="keyword">if</span> (pmut_bin &lt; 0.0 || pmut_bin &gt; 1.0)
+        disp([<span class="string">' Probability of mutation entered is : '</span>, num2str(pmut_bin)]);
+        disp(<span class="string">' Entered value of probability of mutation of binary variables is out of bounds, hence exiting'</span>);
+        exit;
+    <span class="keyword">end</span>
+<span class="keyword">elseif</span> nbin == 0
+    pcross_bin = [];
+    pmut_bin = [];
+    nbincross = [];
+    nbinmut = [];
+    nbits = [];
+    min_binvar = [];
+    max_binvar = [];
+    parent_strings = [];
+<span class="keyword">end</span>
+
+<span class="keyword">if</span> (nreal == 0 &amp;&amp; nbin == 0)
+    disp(<span class="string">' Number of real as well as binary variables, both are zero, hence exiting'</span>);
+    exit;
+<span class="keyword">end</span>
+
+disp(<span class="string">' Input data successfully entered, now performing initialization'</span>)
+fprintf(fpt5, <span class="string">'\n Population size = %d'</span>, popsize);
+fprintf(fpt5, <span class="string">'\n Number of generations = %d'</span>, ngen);
+fprintf(fpt5, <span class="string">'\n Number of objective functions = %d'</span>, nobj);
+fprintf(fpt5, <span class="string">'\n Number of constraints = %d'</span>, ncon);
+fprintf(fpt5, <span class="string">'\n Number of real variables = %d'</span>, nreal);
+<span class="keyword">if</span> (nreal ~= 0)
+    <span class="keyword">for</span> i=1:nreal
+        fprintf(fpt5, <span class="string">'\n Lower limit of real variable %d = %e'</span>, i, min_realvar(i));
+        fprintf(fpt5, <span class="string">'\n Upper limit of real variable %d = %e'</span>, i, max_realvar(i));
+    <span class="keyword">end</span>
+    fprintf(fpt5, <span class="string">'\n Probability of crossover of real variable = %e'</span>, pcross_real);
+    fprintf(fpt5, <span class="string">'\n Probability of mutation of real variable = %e'</span>, pmut_real);
+    fprintf(fpt5, <span class="string">'\n Distribution index for crossover = %e'</span>, eta_c);
+    fprintf(fpt5, <span class="string">'\n Distribution index for mutation = %e'</span>, eta_m);
+<span class="keyword">end</span>
+fprintf(fpt5, <span class="string">'\n Number of binary variables = %d'</span>, nbin);
+<span class="keyword">if</span> (nbin ~= 0)
+    <span class="keyword">for</span> i=1:nbin
+        fprintf(fpt5, <span class="string">'\n Number of bits for binary variable %d = %d'</span>, i, nbits(i));
+        fprintf(fpt5, <span class="string">'\n Lower limit of binary variable %d = %e'</span>, i, min_binvar(i));
+        fprintf(fpt5, <span class="string">'\n Upper limit of binary variable %d = %e'</span>, i, max_binvar(i));
+    <span class="keyword">end</span>
+    fprintf(fpt5, <span class="string">'\n Probability of crossover of binary variable = %e'</span>, pcross_bin);
+    fprintf(fpt5, <span class="string">'\n Probability of mutation of binary variable = %e'</span>, pmut_bin);
+<span class="keyword">end</span>
+fprintf(fpt5, <span class="string">'\n Seed for random number generator = %e\n'</span>, seed);
+bitlength = 0;
+<span class="keyword">if</span> (nbin ~= 0)
+    bitlength = sum(nbits);
+<span class="keyword">end</span>
+fprintf(fpt1, <span class="string">'# of objectives = %d, # of constraints = %d, # of real var = %d, # of bits of bin_var = %d, constr_violation, rank, crowding_distance\n'</span>, nobj, ncon, nreal, bitlength);
+fprintf(fpt2, <span class="string">'# of objectives = %d, # of constraints = %d, # of real var = %d, # of bits of bin_var = %d, constr_violation, rank, crowding_distance\n'</span>, nobj, ncon, nreal, bitlength);
+fprintf(fpt3, <span class="string">'# of objectives = %d, # of constraints = %d, # of real var = %d, # of bits of bin_var = %d, constr_violation, rank, crowding_distance\n'</span>, nobj, ncon, nreal, bitlength);
+fprintf(fpt4, <span class="string">'# of objectives = %d, # of constraints = %d, # of real var = %d, # of bits of bin_var = %d, constr_violation, rank, crowding_distance\n'</span>, nobj, ncon, nreal, bitlength);
+
+nbinmut = 0;
+nrealmut = 0;
+nbincross = 0;
+nrealcross = 0;
+
+ncolumn = nobj+ncon+nreal+nbin+1+1+1; <span class="comment">% cons_viol+rank+crowd_dist</span>
+parent_pop = zeros(popsize,ncolumn);
+
+<span class="keyword">if</span> (nreal ~= 0)
+    parent_pop = initialize(parent_pop, popsize, nobj, ncon,nreal, min_realvar, max_realvar);
+<span class="keyword">end</span>
+<span class="keyword">if</span> (nbin ~= 0)
+    parent_strings = round(rand(popsize,bitlength));
+    parent_pop = decode(parent_pop, parent_strings, nobj, ncon, nreal, nbin, popsize, nbits, min_binvar, max_binvar);
+<span class="keyword">end</span>
+disp(<span class="string">' Initialization done, now performing first generation'</span>);
+parent_pop = evaluate(parent_pop, popsize, problem, nobj, ncon, nreal, nbin);
+parent_pop = assign_rank_and_crowding_distance(parent_pop, nobj, ncon, nreal, nbin);
+report_pop(parent_pop, fpt1, popsize, nobj, ncon, nreal, nbin);
+fprintf(fpt4, <span class="string">'# gen = 1\n'</span>);
+report_pop(parent_pop, fpt4, popsize, nobj, ncon, nreal, nbin);
+disp(<span class="string">' # gen = 1'</span>);
+
+<span class="keyword">for</span> i=2:ngen
+    [child_pop, child_strings, nrealcross, nbincross] = selection(parent_pop, parent_strings, pcross_real, pcross_bin, <span class="keyword">...</span>
+        eta_c, nbincross, nrealcross, min_realvar, max_realvar, nbits, nobj, ncon, nreal, nbin);
+    [child_pop, child_strings, nbinmut, nrealmut] = mutation(child_pop, child_strings, popsize, nreal, pmut_real, <span class="keyword">...</span>
+        min_realvar, max_realvar, eta_m, nobj, ncon, nbin, nbits, pmut_bin, nbinmut, nrealmut);
+    <span class="keyword">if</span> (nbin ~= 0)
+        child_pop = decode(child_pop, child_strings, nobj, ncon, nreal, nbin, popsize, nbits, min_binvar, max_binvar);
+    <span class="keyword">end</span>
+    child_pop = evaluate(child_pop, popsize, problem, nobj, ncon, nreal, nbin);
+    mixed_pop = [parent_pop; child_pop];
+    mixed_pop = assign_rank_and_crowding_distance(mixed_pop, nobj, ncon, nreal, nbin);
+    [parent_pop, parent_strings] = fill_nondominated_sort(mixed_pop, [parent_strings; child_strings], nobj, ncon, nreal, nbin);
+    clear <span class="string">child_pop</span> <span class="string">mixed_pop</span>
+    fprintf(fpt4, <span class="string">'# gen = %d\n'</span>, i);
+    report_pop(parent_pop, fpt4, popsize, nobj, ncon, nreal, nbin);
+    disp([<span class="string">' # gen = '</span>, num2str(i)])
+<span class="keyword">end</span>
+
+disp(<span class="string">' Generations finished, now reporting solutions'</span>)
+report_pop(parent_pop, fpt2, popsize, nobj, ncon, nreal, nbin);
+report_feasible(parent_pop, fpt3, popsize, nobj, ncon, nreal, nbin);
+<span class="keyword">if</span> (nreal ~= 0)
+    fprintf(fpt5, <span class="string">' Number of crossover of real variable = %d\n'</span>, nrealcross);
+    fprintf(fpt5, <span class="string">' Number of mutation of real variable = %d\n'</span>, nrealmut);
+<span class="keyword">end</span>
+<span class="keyword">if</span> (nbin ~= 0)
+    fprintf(fpt5, <span class="string">' Number of crossover of binary variable = %d\n'</span>, nbincross);
+    fprintf(fpt5, <span class="string">' Number of mutation of binary variable = %d\n'</span>, nbinmut);
+<span class="keyword">end</span>
+
+fprintf(fpt1, <span class="string">'eof'</span>);
+fprintf(fpt2, <span class="string">'eof'</span>);
+fprintf(fpt3, <span class="string">'eof'</span>);
+fprintf(fpt4, <span class="string">'eof'</span>);
+fprintf(fpt5, <span class="string">'eof'</span>);
+
+fclose(fpt1);
+fclose(fpt2);
+fclose(fpt3);
+fclose(fpt4);
+fclose(fpt5);
+disp(<span class="string">' Routine successfully exited'</span>)
+
+<span class="comment">% POSTPROCESS</span>
+<span class="keyword">if</span> post_level == 1
+    <span class="keyword">if</span> nobj == 2
+        data = parent_pop(:,1:2);
+        plot(data(:,1),data(:,2),<span class="string">'ro'</span>)
+    <span class="keyword">elseif</span> nobj == 3
+        data = parent_pop(:,1:3);
+        plot3(data(:,1),data(:,2),data(:,3),<span class="string">'ro'</span>)
+    <span class="keyword">elseif</span> nobj == 1
+        fprintf(<span class="string">'\n\nObjective Value of All Population Members:\n'</span>);
+        fprintf(<span class="string">'Obj value = %10.4f\n'</span>,parent_pop(:,1));
+    <span class="keyword">end</span>
+
+<span class="keyword">else</span>
+    pareto = NSGA2_postprocess(parent_pop, ngen, nbits, min_binvar, max_binvar, problem, <span class="keyword">...</span>
+        nobj, ncon, nreal, nbin);
+<span class="keyword">end</span>
+</pre><pre class="codeoutput"> Enter the problem relevant and algorithm relevant paramaters ...
+ Enter the population size (a multiple of 4) : 48
+ Enter the number of generations : 100
+ Enter the number of objectives : 2
+ Enter the number of constraints : 0
+ Enter the number of real variables : 3
+ Enter the lower limit of real variable 1 : 0
+ Enter the upper limit of real variable 1 : 1
+ Enter the lower limit of real variable 2 : 0
+ Enter the upper limit of real variable 2 : 1
+ Enter the lower limit of real variable 3 : 0
+ Enter the upper limit of real variable 3 : 1
+ Enter the probability of crossover of real variable (0.6-1.0) : 0.9
+ Enter the probability of mutation of real variable (1/nreal) : 0.033
+ Enter the value of distribution index for crossover (5-20) : 15
+ Enter the value of distribution index for mutation (5-50) : 20
+ Enter the number of binary variables : 0
+ Input data successfully entered, now performing initialization
+ Initialization done, now performing first generation
+ # gen = 1
+ # gen = 2
+ # gen = 3
+ # gen = 4
+ # gen = 5
+ # gen = 6
+ # gen = 7
+ # gen = 8
+ # gen = 9
+ # gen = 10
+ # gen = 11
+ # gen = 12
+ # gen = 13
+ # gen = 14
+ # gen = 15
+ # gen = 16
+ # gen = 17
+ # gen = 18
+ # gen = 19
+ # gen = 20
+ # gen = 21
+ # gen = 22
+ # gen = 23
+ # gen = 24
+ # gen = 25
+ # gen = 26
+ # gen = 27
+ # gen = 28
+ # gen = 29
+ # gen = 30
+ # gen = 31
+ # gen = 32
+ # gen = 33
+ # gen = 34
+ # gen = 35
+ # gen = 36
+ # gen = 37
+ # gen = 38
+ # gen = 39
+ # gen = 40
+ # gen = 41
+ # gen = 42
+ # gen = 43
+ # gen = 44
+ # gen = 45
+ # gen = 46
+ # gen = 47
+ # gen = 48
+ # gen = 49
+ # gen = 50
+ # gen = 51
+ # gen = 52
+ # gen = 53
+ # gen = 54
+ # gen = 55
+ # gen = 56
+ # gen = 57
+ # gen = 58
+ # gen = 59
+ # gen = 60
+ # gen = 61
+ # gen = 62
+ # gen = 63
+ # gen = 64
+ # gen = 65
+ # gen = 66
+ # gen = 67
+ # gen = 68
+ # gen = 69
+ # gen = 70
+ # gen = 71
+ # gen = 72
+ # gen = 73
+ # gen = 74
+ # gen = 75
+ # gen = 76
+ # gen = 77
+ # gen = 78
+ # gen = 79
+ # gen = 80
+ # gen = 81
+ # gen = 82
+ # gen = 83
+ # gen = 84
+ # gen = 85
+ # gen = 86
+ # gen = 87
+ # gen = 88
+ # gen = 89
+ # gen = 90
+ # gen = 91
+ # gen = 92
+ # gen = 93
+ # gen = 94
+ # gen = 95
+ # gen = 96
+ # gen = 97
+ # gen = 98
+ # gen = 99
+ # gen = 100
+ Generations finished, now reporting solutions
+ Routine successfully exited
+</pre><img vspace="5" hspace="5" src="nsga2_01.png" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2015a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH NSGA-II REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+%
+%                           Nondominated Sorting Genetic Algorithm (NSGA-II)
+%                           with Real-Parameter and Discrete-Parameter Handling
+%
+%                           Date: 12 Nov 2012
+%                           Author: Cem Celal Tutum, Ph.D.
+%                           Modified by Ling Zhu on 12 May 2016
+%                           Under supervision of Prof. Kalyanmoy Deb
+%
+%                           Computational Optimization and
+%                           Innovation Laboratory (COIN)
+%                           Michigan State University
+%                           Email: kdeb@egr.msu.edu
+%                           Web: www.coin-laboratory.com
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+
+clear all; close all; clc; format long g;
+seed = floor(sum(100*clock)); % Varying seed
+rng(seed, 'twister');
+
+% set the problem size from bottom, no other change is required
+problem = 7;
+
+% problem = 0 REPLACE_WITH_DASH_DASH> User defined
+% problem = 1 REPLACE_WITH_DASH_DASH> sch1
+% problem = 2 REPLACE_WITH_DASH_DASH> sch2
+% problem = 3 REPLACE_WITH_DASH_DASH> fon
+% problem = 4 REPLACE_WITH_DASH_DASH> kur
+% problem = 5 REPLACE_WITH_DASH_DASH> pol
+% problem = 6 REPLACE_WITH_DASH_DASH> vnt
+% problem = 7 REPLACE_WITH_DASH_DASH> zdt1
+% problem = 8 REPLACE_WITH_DASH_DASH> zdt2
+% problem = 9 REPLACE_WITH_DASH_DASH> zdt3
+% problem = 10 REPLACE_WITH_DASH_DASH> zdt4
+% problem = 11 REPLACE_WITH_DASH_DASH> zdt5
+% problem = 12 REPLACE_WITH_DASH_DASH> zdt6
+% problem = 13 REPLACE_WITH_DASH_DASH> bnh
+% problem = 14 REPLACE_WITH_DASH_DASH> osy
+% problem = 15 REPLACE_WITH_DASH_DASH> srn
+% problem = 16 REPLACE_WITH_DASH_DASH> tnk
+% problem = 17 REPLACE_WITH_DASH_DASH> ctp1
+% problem = 18 REPLACE_WITH_DASH_DASH> ctp2
+% problem = 19 REPLACE_WITH_DASH_DASH> ctp3
+% problem = 20 REPLACE_WITH_DASH_DASH> ctp4
+% problem = 21 REPLACE_WITH_DASH_DASH> ctp5
+% problem = 22 REPLACE_WITH_DASH_DASH> ctp6
+% problem = 23 REPLACE_WITH_DASH_DASH> ctp7
+% problem = 24 REPLACE_WITH_DASH_DASH> ctp8
+% problem = 25 REPLACE_WITH_DASH_DASH> CONSTR
+% problem = 26 REPLACE_WITH_DASH_DASH> DTLZ2 (three-objective)
+
+data = problem_inputs(problem);
+interactive_input = 0;
+post_level = 1; % 1: Fast (last population); 2: Detailed (all_pop.out)
+
+global INF EPS E PI
+INF = 1.0e14;
+EPS = 1.0e-14;
+E = 2.71828182845905;
+PI = 3.14159265358979;
+
+fpt1 = fopen('initial_pop.out','w');
+fpt2 = fopen('final_pop.out','w');
+fpt3 = fopen('best_pop.out','w'); % 'a' da kullanilabilir
+fpt4 = fopen('all_pop.out','w');
+fpt5 = fopen('params_pop.out','w');
+
+fprintf(fpt1, '# This file contains the data of initial population\n');
+fprintf(fpt2, '# This file contains the data of final population\n');
+fprintf(fpt3, '# This file contains the data of final feasible population (if found)\n');
+fprintf(fpt4, '# This file contains the data of all generations\n');
+fprintf(fpt5, '# This file contains information about inputs as read by the program\n');
+
+disp(' Enter the problem relevant and algorithm relevant paramaters ...');
+
+if interactive_input == 0
+    popsize = data.popsize;
+    disp([' Enter the population size (a multiple of 4) : ' num2str(popsize)])
+else
+    popsize = input(' Enter the population size (a multiple of 4) : ');
+end
+if (popsize < 4) || (mod(popsize, 4) ~= 0)
+    disp([' The population size read is : ', num2str(popsize)]);
+    disp(' Wrong population size entered, hence exiting');
+    exit;
+end
+
+if interactive_input == 0
+    ngen = data.ngen;
+    disp([' Enter the number of generations : ' num2str(ngen)])
+else
+    ngen = input(' Enter the number of generations : ');
+end
+if (ngen < 1)
+    disp([' The number of generations read is : ', num2str(ngen)]);
+    disp(' Wrong number of generations entered, hence exiting');
+    exit;
+end
+
+if interactive_input == 0
+    nobj = data.nobj;
+    disp([' Enter the number of objectives : ' num2str(nobj)])
+else
+    nobj = input(' Enter the number of objectives : ');
+end
+if (nobj < 1)
+    disp([' The number of objectives entered is : ', num2str(nobj)]);
+    disp(' Wrong number of objectives entered, hence exiting');
+    exit;
+end
+
+if interactive_input == 0
+    ncon = data.ncon;
+    disp([' Enter the number of constraints : ' num2str(ncon)])
+else
+    ncon = input(' Enter the number of constraints : ');
+end
+if (ncon < 0)
+    disp([' The number of constraints entered is : ', num2str(ncon)]);
+    disp(' Wrong number of constraints entered, hence exiting');
+    exit;
+end
+
+if interactive_input == 0
+    nreal = data.nreal;
+    disp([' Enter the number of real variables : ' num2str(nreal)])
+else
+    nreal = input(' Enter the number of real variables : ');
+end
+if (nreal < 0)
+    disp([' The number of real variables entered is : ', num2str(nreal)]);
+    disp(' Wrong number of real variables entered, hence exiting');
+    exit;
+end
+
+if (nreal ~= 0)
+    min_realvar = zeros(1, nreal);
+    max_realvar = zeros(1, nreal);
+    for i=1:nreal
+        if interactive_input == 0
+            min_realvar(i) = data.min_realvar(i);
+            max_realvar(i) = data.max_realvar(i);
+            disp([' Enter the lower limit of real variable ', num2str(i), ' : ' num2str(min_realvar(i))])
+            disp([' Enter the upper limit of real variable ', num2str(i), ' : ' num2str(max_realvar(i))])
+        else
+            min_realvar(i) = input([' Enter the lower limit of real variable ', num2str(i), ' : ']);
+            max_realvar(i) = input([' Enter the upper limit of real variable ', num2str(i), ' : ' ]);
+        end
+        if (max_realvar(i) <= min_realvar(i))
+            disp(' Wrong limits entered for the min and max bounds of real variable, hence exiting');
+            exit;
+        end
+    end
+    if interactive_input == 0
+        pcross_real = data.pcross_real;
+        disp([' Enter the probability of crossover of real variable (0.6-1.0) : ' num2str(pcross_real)])
+    else
+        pcross_real = input(' Enter the probability of crossover of real variable (0.6-1.0) : ');
+    end
+    if (pcross_real < 0.0) || (pcross_real > 1.0)
+        disp([' Probability of crossover entered is : ', num2str(pcross_real)]);
+        disp(' Entered value of probability of crossover of real variables is out of bounds, hence exiting');
+        exit;
+    end
+    if interactive_input == 0
+        pmut_real = data.pmut_real;
+        disp([' Enter the probability of mutation of real variable (1/nreal) : ' num2str(pmut_real)])
+    else
+        pmut_real = input(' Enter the probability of mutation of real variable (1/nreal) : ');
+    end
+    if (pmut_real < 0.0 || pmut_real > 1.0)
+        disp([' Probability of mutation entered is : ', num2str(pmut_real)]);
+        disp(' Entered value of probability of mutation of real variables is out of bounds, hence exiting');
+        exit;
+    end
+    if interactive_input == 0
+        eta_c = data.eta_c;
+        disp([' Enter the value of distribution index for crossover (5-20) : ' num2str(eta_c)])
+    else
+        eta_c = input(' Enter the value of distribution index for crossover (5-20) : ');
+    end
+    if (eta_c < 0.0)
+        disp([' The value entered is : ', num2str(eta_c)]);
+        disp(' Wrong value of distribution index for crossover entered, hence exiting');
+        exit;
+    end
+    if interactive_input == 0
+        eta_m = data.eta_m;
+        disp([' Enter the value of distribution index for mutation (5-50) : ' num2str(eta_m)])
+    else
+        eta_m = input(' Enter the value of distribution index for mutation (5-50) : ');
+    end
+    if (eta_m < 0.0)
+        disp([' The value entered is : ', num2str(eta_m)]);
+        disp(' Wrong value of distribution index for mutation entered, hence exiting');
+        exit;
+    end
+elseif nreal == 0
+    pcross_real = [];
+    pmut_real=[];
+    eta_c = [];
+    eta_m = [];
+    nrealcross = [];
+    nrealmut = [];
+    min_realvar = [];
+    max_realvar = [];
+end
+
+if interactive_input == 0
+    nbin = data.nbin;
+    disp([' Enter the number of binary variables : ' num2str(nbin)])
+else
+    nbin = input(' Enter the number of binary variables : ');
+end
+if (nbin < 0)
+    disp([' The number of binary variables entered is : ', num2str(nbin)]);
+    disp(' Wrong number of binary variables entered, hence exiting');
+    exit;
+end
+
+if (nbin ~= 0)
+    nbits = zeros(1, nbin);
+    min_binvar = zeros(1, nbin);
+    max_binvar = zeros(1, nbin);
+    for i=1:nbin
+        if interactive_input == 0
+            nbits(i) = data.nbits(i);
+            disp([' Enter the number of bits for binary variable ', num2str(i), ' : ' num2str(nbits(i))])
+        else
+            nbits(i) = input([' Enter the number of bits for binary variable ', num2str(i), ' : ']);
+        end
+        if (nbits(i) < 1)
+            disp(' Wrong number of bits for binary variable entered, hence exiting');
+            exit;
+        end
+        if interactive_input == 0
+            min_binvar(i) = data.min_binvar(i);
+            max_binvar(i) = data.max_binvar(i);
+            disp([' Enter the lower limit of binary variable ', num2str(i), ' : ' num2str(min_binvar(i))])
+            disp([' Enter the upper limit of binary variable ', num2str(i), ' : ' num2str(max_binvar(i))])
+        else
+            min_binvar(i) = input([' Enter the lower limit of binary variable ', num2str(i), ' : ']);
+            max_binvar(i) = input([' Enter the upper limit of binary variable ', num2str(i), ' : ']);
+        end
+        if (max_binvar(i) <= min_binvar(i))
+            disp(' Wrong limits entered for the min and max bounds of binary variable, hence exiting')
+            exit;
+        end
+    end
+    if interactive_input == 0
+        pcross_bin = data.pcross_bin;
+        disp([' Enter the probability of crossover of binary variables (0.6-1.0) : ' num2str(pcross_bin)])
+    else
+        pcross_bin = input(' Enter the probability of crossover of binary variables (0.6-1.0) : ');
+    end
+    if (pcross_bin < 0.0 || pcross_bin > 1.0)
+        disp([' Probability of crossover entered is : ', num2str(pcross_bin)]);
+        disp(' Entered value of probability of crossover of binary variables is out of bounds, hence exiting');
+        exit;
+    end
+    if interactive_input == 0
+        pmut_bin = data.pmut_bin;
+        disp([' Enter the probability of mutation of binary variables (1/nreal) : ' num2str(pmut_bin)])
+    else
+        pmut_bin = input(' Enter the probability of mutation of binary variables (1/nreal) : ');
+    end
+    if (pmut_bin < 0.0 || pmut_bin > 1.0)
+        disp([' Probability of mutation entered is : ', num2str(pmut_bin)]);
+        disp(' Entered value of probability of mutation of binary variables is out of bounds, hence exiting');
+        exit;
+    end
+elseif nbin == 0
+    pcross_bin = [];
+    pmut_bin = [];
+    nbincross = [];
+    nbinmut = [];
+    nbits = [];
+    min_binvar = [];
+    max_binvar = [];
+    parent_strings = [];
+end
+
+if (nreal == 0 && nbin == 0)
+    disp(' Number of real as well as binary variables, both are zero, hence exiting');
+    exit;
+end
+
+disp(' Input data successfully entered, now performing initialization')
+fprintf(fpt5, '\n Population size = %d', popsize);
+fprintf(fpt5, '\n Number of generations = %d', ngen);
+fprintf(fpt5, '\n Number of objective functions = %d', nobj);
+fprintf(fpt5, '\n Number of constraints = %d', ncon);
+fprintf(fpt5, '\n Number of real variables = %d', nreal);
+if (nreal ~= 0)
+    for i=1:nreal
+        fprintf(fpt5, '\n Lower limit of real variable %d = %e', i, min_realvar(i));
+        fprintf(fpt5, '\n Upper limit of real variable %d = %e', i, max_realvar(i));
+    end
+    fprintf(fpt5, '\n Probability of crossover of real variable = %e', pcross_real);
+    fprintf(fpt5, '\n Probability of mutation of real variable = %e', pmut_real);
+    fprintf(fpt5, '\n Distribution index for crossover = %e', eta_c);
+    fprintf(fpt5, '\n Distribution index for mutation = %e', eta_m);
+end
+fprintf(fpt5, '\n Number of binary variables = %d', nbin);
+if (nbin ~= 0)
+    for i=1:nbin
+        fprintf(fpt5, '\n Number of bits for binary variable %d = %d', i, nbits(i));
+        fprintf(fpt5, '\n Lower limit of binary variable %d = %e', i, min_binvar(i));
+        fprintf(fpt5, '\n Upper limit of binary variable %d = %e', i, max_binvar(i));
+    end
+    fprintf(fpt5, '\n Probability of crossover of binary variable = %e', pcross_bin);
+    fprintf(fpt5, '\n Probability of mutation of binary variable = %e', pmut_bin);
+end
+fprintf(fpt5, '\n Seed for random number generator = %e\n', seed);
+bitlength = 0;
+if (nbin ~= 0)
+    bitlength = sum(nbits);
+end
+fprintf(fpt1, '# of objectives = %d, # of constraints = %d, # of real var = %d, # of bits of bin_var = %d, constr_violation, rank, crowding_distance\n', nobj, ncon, nreal, bitlength);
+fprintf(fpt2, '# of objectives = %d, # of constraints = %d, # of real var = %d, # of bits of bin_var = %d, constr_violation, rank, crowding_distance\n', nobj, ncon, nreal, bitlength);
+fprintf(fpt3, '# of objectives = %d, # of constraints = %d, # of real var = %d, # of bits of bin_var = %d, constr_violation, rank, crowding_distance\n', nobj, ncon, nreal, bitlength);
+fprintf(fpt4, '# of objectives = %d, # of constraints = %d, # of real var = %d, # of bits of bin_var = %d, constr_violation, rank, crowding_distance\n', nobj, ncon, nreal, bitlength);
+
+nbinmut = 0;
+nrealmut = 0;
+nbincross = 0;
+nrealcross = 0;
+
+ncolumn = nobj+ncon+nreal+nbin+1+1+1; % cons_viol+rank+crowd_dist
+parent_pop = zeros(popsize,ncolumn);
+
+if (nreal ~= 0)
+    parent_pop = initialize(parent_pop, popsize, nobj, ncon,nreal, min_realvar, max_realvar);
+end
+if (nbin ~= 0)
+    parent_strings = round(rand(popsize,bitlength));
+    parent_pop = decode(parent_pop, parent_strings, nobj, ncon, nreal, nbin, popsize, nbits, min_binvar, max_binvar);
+end
+disp(' Initialization done, now performing first generation');
+parent_pop = evaluate(parent_pop, popsize, problem, nobj, ncon, nreal, nbin);
+parent_pop = assign_rank_and_crowding_distance(parent_pop, nobj, ncon, nreal, nbin);
+report_pop(parent_pop, fpt1, popsize, nobj, ncon, nreal, nbin);
+fprintf(fpt4, '# gen = 1\n');
+report_pop(parent_pop, fpt4, popsize, nobj, ncon, nreal, nbin);
+disp(' # gen = 1');
+
+for i=2:ngen
+    [child_pop, child_strings, nrealcross, nbincross] = selection(parent_pop, parent_strings, pcross_real, pcross_bin, ...
+        eta_c, nbincross, nrealcross, min_realvar, max_realvar, nbits, nobj, ncon, nreal, nbin);
+    [child_pop, child_strings, nbinmut, nrealmut] = mutation(child_pop, child_strings, popsize, nreal, pmut_real, ...
+        min_realvar, max_realvar, eta_m, nobj, ncon, nbin, nbits, pmut_bin, nbinmut, nrealmut);
+    if (nbin ~= 0)
+        child_pop = decode(child_pop, child_strings, nobj, ncon, nreal, nbin, popsize, nbits, min_binvar, max_binvar);
+    end
+    child_pop = evaluate(child_pop, popsize, problem, nobj, ncon, nreal, nbin);
+    mixed_pop = [parent_pop; child_pop];
+    mixed_pop = assign_rank_and_crowding_distance(mixed_pop, nobj, ncon, nreal, nbin);
+    [parent_pop, parent_strings] = fill_nondominated_sort(mixed_pop, [parent_strings; child_strings], nobj, ncon, nreal, nbin);
+    clear child_pop mixed_pop
+    fprintf(fpt4, '# gen = %d\n', i);
+    report_pop(parent_pop, fpt4, popsize, nobj, ncon, nreal, nbin);
+    disp([' # gen = ', num2str(i)])
+end
+
+disp(' Generations finished, now reporting solutions')
+report_pop(parent_pop, fpt2, popsize, nobj, ncon, nreal, nbin);
+report_feasible(parent_pop, fpt3, popsize, nobj, ncon, nreal, nbin);
+if (nreal ~= 0)
+    fprintf(fpt5, ' Number of crossover of real variable = %d\n', nrealcross);
+    fprintf(fpt5, ' Number of mutation of real variable = %d\n', nrealmut);
+end
+if (nbin ~= 0)
+    fprintf(fpt5, ' Number of crossover of binary variable = %d\n', nbincross);
+    fprintf(fpt5, ' Number of mutation of binary variable = %d\n', nbinmut);
+end
+
+fprintf(fpt1, 'eof');
+fprintf(fpt2, 'eof');
+fprintf(fpt3, 'eof');
+fprintf(fpt4, 'eof');
+fprintf(fpt5, 'eof');
+
+fclose(fpt1);
+fclose(fpt2);
+fclose(fpt3);
+fclose(fpt4);
+fclose(fpt5);
+disp(' Routine successfully exited')
+
+% POSTPROCESS
+if post_level == 1  
+    if nobj == 2
+        data = parent_pop(:,1:2);
+        plot(data(:,1),data(:,2),'ro')
+    elseif nobj == 3
+        data = parent_pop(:,1:3);
+        plot3(data(:,1),data(:,2),data(:,3),'ro')
+    elseif nobj == 1
+        fprintf('\n\nObjective Value of All Population Members:\n');
+        fprintf('Obj value = %10.4f\n',parent_pop(:,1));
+    end
+
+else
+    pareto = NSGA2_postprocess(parent_pop, ngen, nbits, min_binvar, max_binvar, problem, ...
+        nobj, ncon, nreal, nbin);
+end
+
+
+##### SOURCE END #####
+--></body></html>

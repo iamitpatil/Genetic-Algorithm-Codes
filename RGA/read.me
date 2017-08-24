@@ -1,0 +1,32 @@
+Real-coded GA in Matlab (For Limited Use)
+=========================================
+Instructions:
+1. Code your objective function and constraint in file
+true_func.m. Variable bounds are to be specified in file setParam.m. Also 
+set the problem number in SetParam.m as the case number and set "problem = x"
+2. For unconstrained problems, put no constraints. The file setParam.m
+needs to be specified for correct number of variables (k) and
+constraints (ncon). 
+3. Constraints are to be nomalized as follows: 
+for g(x) >= b,  normalized constraint function is [g(x)/b - 1]. The
+code assumes that g(x)-b >= 0 means that the solution x is infeasible. 
+A constraint of type g(x)<=0 can be entered as -g(x).
+4. This code minimizes the objective function. For maximization
+problems, use -f(x) as your objective function in true_func.m.
+5. No file other than true_func.m and SetParem.m needs to be changed. 
+6. Parameters are specified in file setParam.m. This file needs to be
+changed if you would be changing population size or other parameters.
+7. The file statistics.out saves generation number, best fitness value
+and average value of the population of the RGA run. The file all_generations.out 
+saves all generational output.
+
+This code handles real-valued parameters and constraints. This is a
+single-objective optimization code and is to be used for pedagogical
+purposes only. 
+
+Kalyanmoy Deb
+Cem Tutum
+COIN Lab
+Michigan State University, East Lansing, USA
+www.coin-laboratory.com
+kdeb@egr.msu.edu 

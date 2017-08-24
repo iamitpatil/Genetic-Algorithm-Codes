@@ -1,0 +1,30 @@
+NSGA-II code in Matlab (For Limited Use)
+=========================================
+Instructions:
+1. Code your objective function and constraint in file
+evaluate.m. Variable bounds and other parameters are to be specified in file problem_inputs.m. Also 
+set the problem number in NSGA2.m as the case number and set "problem = x"
+2. Constraints are to be nomalized as follows: 
+for g(x) >= b,  normalized constraint function is [g(x)/b - 1]. The
+code assumes that g(x)-b >= 0 means that the solution x is infeasible. 
+3. This code minimizes each objective function. For a maximization function,
+use -f(x) as your objective function in evaluate.m.
+4. No file other than true_func.m, problem_inputs.m and NSGA2.m need to be changed. 
+5. Following output files are generated after reach run:
+all_pop.out	% all population members from each geenration
+final_pop.out	% final population members, feasible and infeasible
+params_pop.out % parameter values used in NSGA-II
+best_pop.out	% Best feasible and non-dominated population members
+with all details, use this file for printing and final consideration
+initial_pop.out % Initial population members
+
+This code handles real-valued parameters and constraints. This is a
+multi-objective optimization code and is to be used for pedagogical
+purposes only. 
+
+Kalyanmoy Deb
+Ling Zhu
+COIN Lab
+Michigan State University, East Lansing, USA
+www.coin-laboratory.com
+kdeb@egr.msu.edu 
